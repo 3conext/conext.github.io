@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>한국어 교육 한눈에 - 지역구별 목록</title>
+  <style>
+    body { font-family: sans-serif; margin: 40px; background: #f8fafc; }
+    h1 { color: #0a5a9c; }
+    .subtitle { font-size: 1.2em; margin-bottom: 28px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 30px; }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 18px 12px 12px 12px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card h3 { margin: 0 0 8px 0; color: #1a3d6d; font-size: 1.1em;}
+    .card ul { padding-left: 18px; margin: 0 0 4px 0; font-size: 0.98em; }
+    .card li { margin-bottom: 3px; }
+    .card a { color: #0a5a9c; text-decoration: underline; font-size: 0.98em;}
+    @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>한국어 교육 한눈에</h1>
+  <div class="subtitle" id="regionTitle"></div>
+  <div id="programGrid" class="grid"></div>
+  <script>
+    // 지역구 쿼리 파라미터 추출
+    function getQueryParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+    const region = getQueryParam('region');
+    document.getElementById('regionTitle').textContent =
+      region ? `${region}의 한국어 교육 프로그램 목록` : '프로그램 목록';
+
+    fetch('tableConvert.com_bofwg7.json')
+      .then(resp => resp.json())
+      .then(data => {
+        let filtered = data;
+        if (region) {
+          filtered = data.filter(p => (p["지역구"] === region));
+        }
+        renderPrograms(filtered);
+      });
+
+    function renderPrograms(list) {
+      const grid = document.getElementById('programGrid');
+      grid.innerHTML = '';
+      if (list.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;color:#888;">해당 지역구의 프로그램이 없습니다.</div>';
+        return;
+      }
+      list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h3>${p["프로그램명"] || "-"}</h3>
+          <ul>
+            <li><strong>지역구:</strong> ${p["지역구"] || "-"}</li>
+            <li><strong>기관:</strong> ${p["기관"] || "-"}</li>
+            <li><strong>교육장소:</strong> ${p["교육장소"] || "-"}</li>
+            <li><strong>대상 나이:</strong> ${p["대상 나이"] || "-"}</li>
+            <li><strong>대상 수준:</strong> ${p["대상 수준"] || "-"}</li>
+            <li><strong>모집인원:</strong> ${p["모집인원"] || "-"}</li>
+            <li><strong>진행기간:</strong> ${p["진행기간(시작)"] || "-"} ~ ${p["진행기간(마감)"] || "-"}</li>
+          </ul>
+          <a href="${p["URL"] || "#"}" target="_blank">프로그램 바로가기</a>
+        `;
+        grid.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
