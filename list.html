@@ -4,15 +4,23 @@
   <meta charset="UTF-8">
   <title>한국어 교육 한눈에 - 지역구별 목록</title>
   <style>
-    body { font-family: sans-serif; margin: 40px; background: #f8fafc; }
+    body {
+      font-family: sans-serif;
+      margin: 40px auto;
+      background: #f8fafc;
+      max-width: 1200px;  /* 본문 폭 제한 */
+      overflow-x: hidden; /* 가로 스크롤 방지 */
+    }
     h1 { color: #0a5a9c; }
     .subtitle { font-size: 1.2em; margin-bottom: 28px; }
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr); /* 3열 그리드 */
+      grid-template-columns: repeat(3, 1fr); /* 3열 고정 */
       gap: 18px;
-      padding: 10px;
-      overflow-x: hidden;   /* 가로 스크롤 방지 */
+      width: 100%;
+      margin: 0 auto 30px auto;
+      box-sizing: border-box;
+      overflow-x: hidden; /* 가로 스크롤 방지 */
     }
     .card {
       background: #fff;
@@ -20,22 +28,24 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       padding: 18px 12px 12px 12px;
-      min-height: 220px;
+      /* min-height: 220px;  필요시 조정 */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      max-width: 100%;
       box-sizing: border-box;
+      width: 100%;
+      min-width: 0; /* 강제 줄바꿈 허용 */
     }
     .card h3 { margin: 0 0 8px 0; color: #1a3d6d; font-size: 1.1em;}
     .card ul { padding-left: 18px; margin: 0 0 4px 0; font-size: 0.98em; }
     .card li { margin-bottom: 3px; }
     .card a { color: #0a5a9c; text-decoration: underline; font-size: 0.98em;}
-    @media (max-width: 900px) {
+    @media (max-width: 1000px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
       .grid { grid-template-columns: 1fr; }
+      body { margin: 10px; }
     }
   </style>
 </head>
