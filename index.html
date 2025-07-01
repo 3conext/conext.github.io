@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>한국어 교육 한눈에</title>
+  <style>
+    body { font-family: sans-serif; margin: 40px; background: #f8fafc; }
+    h1 { color: #0a5a9c; }
+    .subtitle { font-size: 1.2em; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 30px; }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 18px 12px 12px 12px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card h3 { margin: 0 0 8px 0; color: #1a3d6d; font-size: 1.1em;}
+    .card ul { padding-left: 18px; margin: 0 0 4px 0; font-size: 0.98em; }
+    .card li { margin-bottom: 3px; }
+    .card a { color: #0a5a9c; text-decoration: underline; font-size: 0.98em;}
+    #moreBtn { margin: 0 auto 40px auto; display: block; padding: 10px 24px; background: #0a5a9c; color: #fff; border: none; border-radius: 6px; font-size: 1em; cursor: pointer;}
+    #regionForm { margin-bottom: 36px; }
+    #regionForm select { font-size: 1em; padding: 6px; }
+    #regionForm button { margin-left: 10px; padding: 6px 18px; background: #1a3d6d; color: #fff; border: none; border-radius: 5px; font-size: 1em; cursor: pointer;}
+    @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>한국어 교육 한눈에</h1>
+  <div class="subtitle">맞춤형 한국어 교육 찾아보기</div>
+  <form id="regionForm" action="list.html" method="get">
+    <label for="regionSelect"><strong>지역구 선택:</strong></label>
+    <select id="regionSelect" name="region" required>
+      <option value="">-- 지역구를 선택하세요 --</option>
+      <option value="강남구">강남구</option>
+      <option value="강동구">강동구</option>
+      <option value="강북구">강북구</option>
+      <option value="강서구">강서구</option>
+      <option value="관악구">관악구</option>
+      <option value="광진구">광진구</option>
+      <option value="구로구">구로구</option>
+      <option value="금천구">금천구</option>
+      <option value="노원구">노원구</option>
+      <option value="도봉구">도봉구</option>
+      <option value="동대문구">동대문구</option>
+      <option value="동작구">동작구</option>
+      <option value="마포구">마포구</option>
+      <option value="서대문구">서대문구</option>
+      <option value="서초구">서초구</option>
+      <option value="성동구">성동구</option>
+      <option value="성북구">성북구</option>
+      <option value="송파구">송파구</option>
+      <option value="양천구">양천구</option>
+      <option value="영등포구">영등포구</option>
+      <option value="용산구">용산구</option>
+      <option value="은평구">은평구</option>
+      <option value="종로구">종로구</option>
+      <option value="중구">중구</option>
+      <option value="중랑구">중랑구</option>
+    </select>
+    <button type="submit">조회</button>
+  </form>
+  <div id="programGrid" class="grid"></div>
+  <button id="moreBtn">더 보기</button>
+
+  <script>
+    let allPrograms = [];
+    let shown = 0;
+    const pageSize = 12;
+
+    fetch('tableConvert.com_bofwg7.json')
+      .then(resp => resp.json())
+      .then(data => {
+        allPrograms = data;
+        shown = 0;
+        renderPrograms();
+      });
+
+    function renderPrograms() {
+      const grid = document.getElementById('programGrid');
+      grid.innerHTML = '';
+      const toShow = allPrograms.slice(0, shown + pageSize);
+      toShow.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h3>${p["프로그램명"] || "-"}</h3>
+          <ul>
+            <li><strong>지역구:</strong> ${p["지역구"] || "-"}</li>
+            <li><strong>기관:</strong> ${p["기관"] || "-"}</li>
+            <li><strong>교육장소:</strong> ${p["교육장소"] || "-"}</li>
+            <li><strong>대상 나이:</strong> ${p["대상 나이"] || "-"}</li>
+            <li><strong>대상 수준:</strong> ${p["대상 수준"] || "-"}</li>
+            <li><strong>모집인원:</strong> ${p["모집인원"] || "-"}</li>
+            <li><strong>진행기간:</strong> ${p["진행기간(시작)"] || "-"} ~ ${p["진행기간(마감)"] || "-"}</li>
+          </ul>
+          <a href="${p["URL"] || "#"}" target="_blank">프로그램 바로가기</a>
+        `;
+        grid.appendChild(card);
+      });
+      shown = toShow.length;
+      document.getElementById('moreBtn').style.display =
+        shown < allPrograms.length ? 'block' : 'none';
+    }
+
+    document.getElementById('moreBtn').onclick = function() {
+      renderPrograms();
+    };
+  </script>
+</body>
+</html>
