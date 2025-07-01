@@ -7,7 +7,13 @@
     body { font-family: sans-serif; margin: 40px; background: #f8fafc; }
     h1 { color: #0a5a9c; }
     .subtitle { font-size: 1.2em; margin-bottom: 28px; }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 30px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* 3열 그리드 */
+      gap: 18px;
+      padding: 10px;
+      overflow-x: hidden;   /* 가로 스크롤 방지 */
+    }
     .card {
       background: #fff;
       border: 1px solid #ddd;
@@ -18,13 +24,19 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     .card h3 { margin: 0 0 8px 0; color: #1a3d6d; font-size: 1.1em;}
     .card ul { padding-left: 18px; margin: 0 0 4px 0; font-size: 0.98em; }
     .card li { margin-bottom: 3px; }
     .card a { color: #0a5a9c; text-decoration: underline; font-size: 0.98em;}
-    @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -41,24 +53,31 @@
     document.getElementById('regionTitle').textContent =
       region ? `${region}의 한국어 교육 프로그램 목록` : '프로그램 목록';
 
+    let filteredPrograms = [];
+    let shownCount = 0;
+    const pageSize = 12;
+
     fetch('tableConvert.com_bofwg7.json')
       .then(resp => resp.json())
       .then(data => {
-        let filtered = data;
+        filteredPrograms = data;
         if (region) {
-          filtered = data.filter(p => (p["지역구"] === region));
+          filteredPrograms = data.filter(p => (p["지역구"] === region));
         }
-        renderPrograms(filtered);
+        shownCount = 0;
+        renderPrograms();
       });
 
-    function renderPrograms(list) {
+    function renderPrograms() {
       const grid = document.getElementById('programGrid');
       grid.innerHTML = '';
-      if (list.length === 0) {
+      if (filteredPrograms.length === 0) {
         grid.innerHTML = '<div style="grid-column:1/-1;color:#888;">해당 지역구의 프로그램이 없습니다.</div>';
+        document.getElementById('moreBtn')?.remove();
         return;
       }
-      list.forEach(p => {
+      const toShow = filteredPrograms.slice(0, shownCount + pageSize);
+      toShow.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
@@ -76,6 +95,29 @@
         `;
         grid.appendChild(card);
       });
+      shownCount = toShow.length;
+
+      // 더 보기 버튼 처리
+      let moreBtn = document.getElementById('moreBtn');
+      if (!moreBtn) {
+        moreBtn = document.createElement('button');
+        moreBtn.id = 'moreBtn';
+        moreBtn.textContent = '더 보기';
+        moreBtn.style.margin = '0 auto 40px auto';
+        moreBtn.style.display = 'block';
+        moreBtn.style.padding = '10px 24px';
+        moreBtn.style.background = '#0a5a9c';
+        moreBtn.style.color = '#fff';
+        moreBtn.style.border = 'none';
+        moreBtn.style.borderRadius = '6px';
+        moreBtn.style.fontSize = '1em';
+        moreBtn.style.cursor = 'pointer';
+        moreBtn.onclick = function() {
+          renderPrograms();
+        };
+        grid.parentNode.appendChild(moreBtn);
+      }
+      moreBtn.style.display = shownCount < filteredPrograms.length ? 'block' : 'none';
     }
   </script>
 </body>
