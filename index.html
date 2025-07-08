@@ -5,8 +5,8 @@
   <title>한국어 교육 한눈에</title>
   <style>
     body { font-family: sans-serif; margin: 40px; background: #f8fafc; }
-    h1 { color: #0a5a9c; }
-    .subtitle { font-size: 2.8em; margin-bottom: 30px; }
+    h1 { color: #0a5a9c; font-size: 2.4em; }
+    .subtitle { font-size: 1.5em; margin-bottom: 30px; }
     .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 30px; }
     .card {
       background: #fff;
@@ -27,6 +27,7 @@
     #regionForm { margin-bottom: 36px; }
     #regionForm select { font-size: 1em; padding: 6px; }
     #regionForm button { margin-left: 10px; padding: 6px 18px; background: #1a3d6d; color: #fff; border: none; border-radius: 5px; font-size: 1em; cursor: pointer;}
+    #filter-section { display: inline-block; margin-left: 20px; }
     @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
   </style>
@@ -34,9 +35,9 @@
 <body>
   <h1>한국어 교육 한눈에</h1>
   <div class="subtitle">맞춤형 한국어 교육 찾아보기</div>
-  <form id="regionForm" action="list.html" method="get">
+  <form id="regionForm" onsubmit="filterPrograms(); return false;">
     <label for="regionSelect"><strong>지역구 선택:</strong></label>
-    <select id="regionSelect" name="region" required>
+    <select id="regionSelect" name="region">
       <option value="">-- 지역구를 선택하세요 --</option>
       <option value="강서구">강서구</option>
       <option value="구로구">구로구</option>
@@ -44,39 +45,45 @@
       <option value="양천구">양천구</option>
       <option value="영등포구">영등포구</option>
     </select>
-    <!-- 추가 -->
     <div id="filter-section">
-  <select id="userType">
-    <option value="">전체</option>
-    <option value="초등">초등학생</option>
-    <option value="중등">중학생</option>
-    <option value="고등">고등학생</option>
-  </select>
-
+      <select id="userType">
+        <option value="">전체</option>
+        <option value="초등">초등학생</option>
+        <option value="중등">중학생</option>
+        <option value="고등">고등학생</option>
+      </select>
       <input type="text" id="searchKeyword" placeholder="검색어를 입력하세요.">
-  <button onclick="filterPrograms()">검색</button>
-      
+      <button type="submit">검색</button>
+    </div>
   </form>
   <div id="programGrid" class="grid"></div>
   <button id="moreBtn">더 보기</button>
 
   <script>
     let allPrograms = [];
+    let filteredPrograms = [];
     let shown = 0;
     const pageSize = 12;
 
+    // 데이터 불러오기
     fetch('tableConvert.com_bofwg7.json')
       .then(resp => resp.json())
       .then(data => {
         allPrograms = data;
+        filteredPrograms = allPrograms;
         shown = 0;
         renderPrograms();
       });
 
-    function renderPrograms() {
+    // 프로그램 렌더링
+    function renderPrograms(reset = false) {
       const grid = document.getElementById('programGrid');
+      if (reset) {
+        grid.innerHTML = '';
+        shown = 0;
+      }
+      const toShow = filteredPrograms.slice(0, shown + pageSize);
       grid.innerHTML = '';
-      const toShow = allPrograms.slice(0, shown + pageSize);
       toShow.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card';
@@ -97,7 +104,31 @@
       });
       shown = toShow.length;
       document.getElementById('moreBtn').style.display =
-        shown < allPrograms.length ? 'block' : 'none';
+        shown < filteredPrograms.length ? 'block' : 'none';
+    }
+
+    // 필터링 함수
+    function filterPrograms() {
+      const region = document.getElementById('regionSelect').value.trim();
+      const userType = document.getElementById('userType').value.trim();
+      const keyword = document.getElementById('searchKeyword').value.trim();
+
+      filteredPrograms = allPrograms.filter(p => {
+        // 지역구 필터
+        if (region && p["지역구"] !== region) return false;
+        // 대상 필터
+        if (userType && !(p["대상 수준"] && p["대상 수준"].includes(userType))) return false;
+        // 키워드 필터 (프로그램명, 기관, 교육장소 등에서 검색)
+        if (keyword) {
+          const searchTarget = [
+            p["프로그램명"], p["기관"], p["교육장소"], p["대상 수준"], p["대상 나이"]
+          ].join(' ');
+          if (!searchTarget.includes(keyword)) return false;
+        }
+        return true;
+      });
+      shown = 0;
+      renderPrograms(true);
     }
 
     document.getElementById('moreBtn').onclick = function() {
